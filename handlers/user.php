@@ -104,9 +104,18 @@
 
 	EventQueue::get()->subscribe('2fa.updated', function($userID, $keyID, $oldState, $newState) {
 		$email = userName($userID);
+		$key = TwoFactorKey::loadFromUserKey(DB::get(), $userID, $keyID);
 		$changes = diffStates($oldState, $newState);
 
-		auditLog('2fa.updated', [$userID, $keyID, $oldState, $newState], '2FA key #' . $keyID . ' for ' . $email . ' updated', $changes);
+		$label = '#' . $keyID;
+		if ($key !== FALSE) {
+			$type = $key->getType();
+			$desc = $key->getDescription();
+			$label = $type;
+			if (!empty($desc)) $label .= ': "' . $desc . '"';
+		}
+
+		auditLog('2fa.updated', [$userID, $keyID, $oldState, $newState], '2FA key (' . $label . ') for ' . $email . ' updated', $changes);
 	});
 
 	EventQueue::get()->subscribe('2fa.deleted', function($userID, $keyID, $keyInfoJson) {
@@ -123,8 +132,17 @@
 
 	EventQueue::get()->subscribe('2fa.verified', function($userID, $keyID) {
 		$email = userName($userID);
+		$key = TwoFactorKey::loadFromUserKey(DB::get(), $userID, $keyID);
 
-		auditLog('2fa.verified', [$userID, $keyID], '2FA key #' . $keyID . ' for ' . $email . ' verified');
+		$label = '#' . $keyID;
+		if ($key !== FALSE) {
+			$type = $key->getType();
+			$desc = $key->getDescription();
+			$label = $type;
+			if (!empty($desc)) $label .= ': "' . $desc . '"';
+		}
+
+		auditLog('2fa.verified', [$userID, $keyID], '2FA key (' . $label . ') for ' . $email . ' verified');
 	});
 
 	EventQueue::get()->subscribe('2fa.device.deleted', function($userID, $deviceID) {
