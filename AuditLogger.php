@@ -88,7 +88,7 @@
 		include_once($file);
 	}
 
-	EventQueue::get()->consumeEvents(function ($event) {
+	EventQueue::get()->consumeEvents('events.auditlogger', function ($event) {
 		if (is_array($event) && isset($event['event'])) {
 			// TODO: We probably want to check this less-often than every event.
 			checkDBAlive();
